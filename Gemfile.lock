@@ -82,8 +82,8 @@ GEM
     nokogiri (1.10.4)
       mini_portile2 (~> 2.4.0)
     numerizer (0.1.1)
-    rack (1.6.4)
-    rack-protection (1.5.3)
+    rack (1.6.13)
+    rack-protection (1.5.5)
       rack
     rack-test (0.6.3)
       rack (>= 1.0)
