@@ -61,23 +61,50 @@ elasticsearch:
   port: 9200
 ```
 
+## Download logs from S3
+- For AWS CLI, if not using the default profile, set your profile using `export AWS_PROFILE=`.
+- Run the following script to download the log files.
+- Fill in the values for `BUCKET`, `LOG_TYPE` and `LOG_FILE_PREFIX`.
+- Log files will be stored in a folder with prefix `s3logs-`.
+
+```
+BUCKET=
+LOG_TYPE=
+LOG_FILE_PREFIX=
+DESTINATION_PATH=./s3logs-$BUCKET/
+files=$(aws s3 ls s3://$BUCKET/$LOG_TYPE/$LOG_FILE_PREFIX | awk '{print $4}')
+for f in $files; do aws s3 cp s3://$BUCKET/$LOG_TYPE/$f $DESTINATION_PATH && gunzip $DESTINATION_PATH$f & done;
+```
+
 ## Command for Rake Task
-Download logs from S3 using the script in `fetchs3logs.sh`.
-Set the values for `BUCKET`, `LOG_TYPE` and `LOG_FILE_PREFIX`.
-Put log files in a folder inside this repository.
-This repository will be mounted inside container in the folder `/app`.
+- Make sure you are in the repository and log folder `s3logs-` is in the same directory.
+- This directory will be mounted inside container in the folder `/app` when run from Docker.
 
 Command is as follows:
+- To run for single file
+```
+bundle exec rake es:import_admin_log['/absolute/path/to/logfile.log']
+```
 
-`bundle exec rake es:import_admin_log['/app/absolute/path/to/logfile.log']`
+- To run for multiple files
+```
+bundle exec rake es:import_admin_log['/absolute/path/to/logfile-1.log /absolute/path/to/logfile-2.log']
+```
 
-If the mappings doesnt really matter to you, you can use the default importer
+- To run for all files in `s3logs-*` folder
+```
+bundle exec rake es:import_admin_log["$(ls $PWD/s3logs-*/*.log | tr '\n' ' ')"]
+```
 
-`bundle exec rake es:import_log['index-name','/app/absolute/path/to/logfile-1.log /app/absolute/path/to/logfile-2.log']`
+- If the mappings doesnt really matter to you, you can use the default importer
+```
+bundle exec rake es:import_log['index-name','/absolute/path/to/logfile-1.log /absolute/path/to/logfile-2.log']
+```
 
-To delete any index, just do
-
-`bundle exec rake es:delete_index['index-name']`
+- To delete any index, just do
+```
+bundle exec rake es:delete_index['index-name']
+```
 
 ## View logs using Kibana
 Kibana will be running on [localhost:5601](http://localhost:5601)
